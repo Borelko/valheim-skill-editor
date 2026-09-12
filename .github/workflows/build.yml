@@ -3,6 +3,8 @@ name: Сборка и релиз
 on:
   push:
     tags: ["v*"]
+  release:
+    types: [published]
   workflow_dispatch:
 
 permissions:
@@ -55,9 +57,10 @@ jobs:
             checksum.txt
 
       - name: Выложить релиз
-        if: startsWith(github.ref, 'refs/tags/')
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ github.event.release.tag_name || github.ref_name }}
           files: |
             ValheimSkillEditor.zip
             checksum.txt
