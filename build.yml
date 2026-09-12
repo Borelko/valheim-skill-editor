@@ -1,0 +1,72 @@
+name: Сборка и релиз
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+
+  build:
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Установить PyInstaller
+        run: pip install pyinstaller
+
+      - name: Собрать exe
+        run: >
+          pyinstaller --noconfirm --clean --onedir --windowed
+          --name ValheimSkillEditor
+          --version-file version_info.txt
+          launcher.py
+
+      - name: Упаковать в архив
+        run: Compress-Archive -Path dist/ValheimSkillEditor/* -DestinationPath ValheimSkillEditor.zip
+
+      - name: Посчитать контрольную сумму
+        run: |
+          $hash = (Get-FileHash ValheimSkillEditor.zip -Algorithm SHA256).Hash
+          Write-Output "SHA256: $hash"
+          Set-Content -Path checksum.txt -Value "SHA256 (ValheimSkillEditor.zip) = $hash"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ValheimSkillEditor
+          path: |
+            ValheimSkillEditor.zip
+            checksum.txt
+
+      - name: Выложить релиз
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ValheimSkillEditor.zip
+            checksum.txt
+          body: |
+            Скачайте `ValheimSkillEditor.zip`, распакуйте и запустите
+            `ValheimSkillEditor.exe`. Python не нужен.
+
+            Перед правкой закройте Valheim полностью: игра держит персонажа
+            в памяти и перезапишет файл при выходе.
+
+            Контрольная сумма архива — в `checksum.txt`. Сборка выполнена
+            этим workflow из исходников репозитория.

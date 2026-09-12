@@ -1,0 +1,54 @@
+name: Ошибка
+description: Программа не открыла файл, повела себя странно или упала
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Спасибо за сообщение. Чаще всего причина в том, что вышел патч игры
+        и формат сохранений изменился — это чинится, нужен только пример файла.
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия программы
+      description: Написана в заголовке окна или выводится по `--list-skills`
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: input
+    id: game
+    attributes:
+      label: Версия Valheim
+      description: Видна в главном меню игры, внизу экрана
+      placeholder: "0.220.3"
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: Что произошло
+      description: Что делали и что увидели вместо ожидаемого
+    validations:
+      required: true
+
+  - type: textarea
+    id: output
+    attributes:
+      label: Текст ошибки
+      description: Строка состояния внизу окна или вывод консоли целиком
+      render: text
+
+  - type: checkboxes
+    id: file
+    attributes:
+      label: Файл персонажа
+      description: |
+        Приложите `.fch` к этому issue — без него восстановить формат почти
+        невозможно. Учтите, что в файле записан идентификатор игрока: если
+        делиться им не хотите, отметьте это ниже.
+      options:
+        - label: Файл приложен
+        - label: Файл приложить не готов, идентификатор игрока приватный
